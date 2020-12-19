@@ -48,7 +48,7 @@ class MultiArmBandit:
 class Simulation:
     def __init__(self, bandit=MultiArmBandit, num_sim=2000, num_pull=1000,
                  epsilon=0.1):
-        self.bandit = MultiArmBandit
+        self.bandit = bandit
         self.num_sim = num_sim
         self.num_pull = num_pull
         self.epsilon = epsilon

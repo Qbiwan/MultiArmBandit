@@ -9,3 +9,7 @@
 ### Non-stationary reward
 
 <img src="image/non_stationary.png" width="1000" height="400" />
+
+### Optimistic initial value
+
+<img src="image/optimistic_initial_value.png" width="1000" height="400" />
