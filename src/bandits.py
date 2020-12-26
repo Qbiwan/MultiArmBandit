@@ -1,7 +1,43 @@
+"""Multi-arm Bandits
+
+Usage:
+    Each bandit class seeks rewards with a different strategy.
+"""
+
 import numpy as np
 
 
 class MultiArmBandit:
+    """A basic multi-arm bandit.
+
+    Parameters:
+        k : int, default= 10
+            Specify the number of arms that the multi-arm bandit has and that
+            can be pulled to receive rewards.
+        epilson : float, default=0.1
+            The epsilon in epsilon-greedy. If epsilon is 0.1, the bandit would
+            implement random exploration 10% of the time, and would take the
+            greedy action to maximise reward 90% of the time.
+            Epsilon lies between 0.0 and 1.0
+    Attributes:
+        rewards: a vector of numpy random normal of size k
+            Represents the true reward of each of the k number of arms.
+            The actual rewards would fluctuate around this mean, and the manner
+            in which it fluctuates would change depending on which bandit class
+            is being used.
+
+        Q: a vector of floats of size k
+            The average value of all rewards received hitherto by each arm.
+            It converges to the true reward in the long run, unless one is
+            using constant alpha in a non-stationary reward environment.
+
+        N: a vector of floats of size k
+            The number of pulls received by each arm. The default total number
+            of pulls is 1000, and each arm would receive a portion of these
+            pulls, depending on the strategy adopted by the bandit. 
+
+    """
+
     def __init__(self, k=10, epsilon=0.1):
         self.k = k
         self.reward = np.random.randn(k)
@@ -32,7 +68,7 @@ class MultiArmBandit:
     def updateQ(self, action):
         self.N[action] += 1
         reward = np.random.normal(self.reward[action], 1, 1)
-        self.Q[action]+= (reward - self.Q[action])/self.N[action]
+        self.Q[action] += (reward - self.Q[action])/self.N[action]
         return reward
 
     def pull_lever_once(self):
