@@ -11,6 +11,7 @@ class MultiArmBandit:
     """A basic multi-arm bandit.
 
     Parameters:
+    ----------
         k : int, default= 10
             Specify the number of arms that the multi-arm bandit has and that
             can be pulled to receive rewards.
@@ -19,22 +20,24 @@ class MultiArmBandit:
             implement random exploration 10% of the time, and would take the
             greedy action to maximise reward 90% of the time.
             Epsilon lies between 0.0 and 1.0
+
     Attributes:
-        rewards: a vector of numpy random normal of size k
+    ----------
+        rewards : a vector of numpy random normal of size k
             Represents the true reward of each of the k number of arms.
             The actual rewards would fluctuate around this mean, and the manner
             in which it fluctuates would change depending on which bandit class
             is being used.
 
-        Q: a vector of floats of size k
+        Q : a vector of floats of size k
             The average value of all rewards received hitherto by each arm.
             It converges to the true reward in the long run, unless one is
             using constant alpha in a non-stationary reward environment.
 
-        N: a vector of floats of size k
+        N : a vector of floats of size k
             The number of pulls received by each arm. The default total number
             of pulls is 1000, and each arm would receive a portion of these
-            pulls, depending on the strategy adopted by the bandit. 
+            pulls, depending on the strategy adopted by the bandit.
 
     """
 
@@ -44,19 +47,41 @@ class MultiArmBandit:
         self.Q = None
         self.N = None
         self.initQ()
-        self.check_epsilon(epsilon)
+        self.epsilon = epsilon
 
     def initQ(self):
+        """Initialize Q-values
+
+        Initializes Q, a vector of size k to be the starting Q-values for
+        each arm, and N, a vector of size k to be the counter for the number
+        of pulls for each arm
+
+        """
         self.Q = np.array([0.0]*self.k)
         self.N = [0]*self.k
 
-    def check_epsilon(self, epsilon):
-        if 0.0 <= epsilon <= 1.0:
-            self.epsilon = epsilon
-        else:
+    @property
+    def epsilon(self):
+        return self._epsilon
+
+    @epsilon.setter
+    def epsilon(self, value):
+        """Prevents epsilon from being set outside range"""
+        if not (0.0 <= value <= 1.0):
             raise ValueError("epsilon must be between 0 and 1")
+        self._epsilon = value
 
     def epsilon_greedy(self):
+        """Implements epsilon-greedy strategy
+
+        Takes an action randomly x% of the time and an action that maximizes
+        current Q-value (1-x)% of the time. If there are several candidates
+        for maximum Q-values, a random tie-breaker is called.
+
+        Returns:
+            action:
+                The arm to be pulled under epsilon-greedy strategy
+        """
         if np.random.random_sample() < self.epsilon:
             action = np.random.choice(self.k)
         else:
@@ -66,16 +91,41 @@ class MultiArmBandit:
         return action
 
     def updateQ(self, action):
+        """Update Q-value with the latest reward
+
+        Increments N by one to record the total number of pulls for the arm
+        corresponding to action.
+        Actual reward is a normally-distributed random variable with standard
+        deviation of 1 and mean set the true reward value of this arm.
+        Q-value is updated using the simple moving average.[1]
+
+        Parameters:
+        ----------
+            action:
+                the specific arm to be pulled, out of all k arms.
+
+        Returns:
+        -------
+            rewards:
+                the actual reward received from pulling the specific arm.
+
+        References:
+        ----------
+        .. [1] https://en.wikipedia.org/wiki/Moving_average   
+
+        """
         self.N[action] += 1
         reward = np.random.normal(self.reward[action], 1, 1)
         self.Q[action] += (reward - self.Q[action])/self.N[action]
         return reward
 
     def pull_lever_once(self):
+        """Pull once a specifc arm as chosen by epsilon-greedy strategy"""
         action = self.epsilon_greedy()
         return self.updateQ(action)
 
     def pull_lever(self, num_pull=1000):
+        """Select arm using a specific strategy, and pull by default 1000 times"""
         for pull in range(num_pull):
             self.pull_lever_once()
 
