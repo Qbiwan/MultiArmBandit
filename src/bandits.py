@@ -96,7 +96,7 @@ class MultiArmBandit:
         Increments N by one to record the total number of pulls for the arm
         corresponding to action.
         Actual reward is a normally-distributed random variable with standard
-        deviation of 1 and mean set the true reward value of this arm.
+        deviation of 1 and mean set to the true reward value of this arm.
         Q-value is updated using the simple moving average.[1]
 
         Parameters:
@@ -111,7 +111,7 @@ class MultiArmBandit:
 
         References:
         ----------
-        .. [1] https://en.wikipedia.org/wiki/Moving_average   
+        .. [1] https://en.wikipedia.org/wiki/Moving_average
 
         """
         self.N[action] += 1
@@ -131,11 +131,77 @@ class MultiArmBandit:
 
 
 class NonStationaryBandit(MultiArmBandit):
+    """A subclass for operating in non-stationary reward environment.
+
+    Creates an environment where the true rewards changes with every
+    time-step at the rate of N(0,0.1).
+
+    Parameters:
+    ----------
+        k : int, default= 10
+            Specify the number of arms that the multi-arm bandit has and that
+            can be pulled to receive rewards.
+        epilson : float, default=0.1
+            The epsilon in epsilon-greedy. If epsilon is 0.1, the bandit would
+            implement random exploration 10% of the time, and would take the
+            greedy action to maximise reward 90% of the time.
+            Epsilon lies between 0.0 and 1.0
+        constant_alpha: bool, default= True
+            When True, learning rate would remain unchanged throughout the
+            entire episode when Q-value is being updated; when False, Q-value
+            is updated using simple moving average. Constant-alpha works better
+            in a non-stationary environment even though Q-values under it do
+            not converge to their long-run values.
+
+    Attributes:
+    ----------
+        rewards : a vector of numpy random normal of size k
+            Represents the true reward of each of the k number of arms.
+            The actual rewards would fluctuate around this mean, and the manner
+            in which it fluctuates would change depending on which bandit class
+            is being used.
+
+        Q : a vector of floats of size k
+            The average value of all rewards received hitherto by each arm.
+            It converges to the true reward in the long run, unless one is
+            using constant alpha in a non-stationary reward environment.
+
+        N : a vector of floats of size k
+            The number of pulls received by each arm. The default total number
+            of pulls is 1000, and each arm would receive a portion of these
+            pulls, depending on the strategy adopted by the bandit.
+
+    """
+
     def __init__(self, constant_alpha=True, **kwargs):
         super().__init__(**kwargs)
         self.constant_alpha = constant_alpha
 
     def updateQ(self, action):
+        """Update Q-value with the latest reward
+
+        Increments N by one to record the total number of pulls for the arm
+        corresponding to action.
+        Actual reward is a normally-distributed random variable with standard
+        deviation of 1 and mean set to the true reward value of this arm.
+        However, true rewards changes with every time-step at the rate of
+        N(0,0.1).
+
+        When constant alpha is True, Q-values are updated at a learning rate
+        of 0.1 by default; when False, Q-value is updated using simple moving
+        average.
+
+        Parameters:
+        ----------
+            action:
+                the specific arm to be pulled, out of all k arms.
+
+        Returns:
+        -------
+            rewards:
+                the actual reward received from pulling the specific arm.
+        """
+
         self.N[action] += 1
         reward_delta = np.random.normal(0, 0.1, self.k)
         self.reward += reward_delta
@@ -148,16 +214,79 @@ class NonStationaryBandit(MultiArmBandit):
 
 
 class OptimisticInitialValueBandit(MultiArmBandit):
+    """Implements Optimistic Initial Value Strategy
+
+    Initializes Q-values at a high value to entice the bandit to explore
+    less frequently-pulled arms, even when the bandit is using a pure greedy
+    strategy rather than a epsilon-greedy strategy.
+
+    Parameters:
+    ----------
+        k : int, default= 10
+            Specify the number of arms that the multi-arm bandit has and that
+            can be pulled to receive rewards.
+        epilson : float, default=0.1
+            The epsilon in epsilon-greedy. If epsilon is 0.1, the bandit would
+            implement random exploration 10% of the time, and would take the
+            greedy action to maximise reward 90% of the time.
+            Epsilon lies between 0.0 and 1.0
+        optimistic: bool, default= True
+            When True, Q-values are initiatized at a high value of 10.0;
+            otherwise, the usual value of 0.0.
+
+    Attributes:
+    ----------
+        rewards : a vector of numpy random normal of size k
+            Represents the true reward of each of the k number of arms.
+            The actual rewards would fluctuate around this mean, and the manner
+            in which it fluctuates would change depending on which bandit class
+            is being used.
+
+        Q : a vector of floats of size k
+            The average value of all rewards received hitherto by each arm.
+            It converges to the true reward in the long run, unless one is
+            using constant alpha in a non-stationary reward environment.
+
+        N : a vector of floats of size k
+            The number of pulls received by each arm. The default total number
+            of pulls is 1000, and each arm would receive a portion of these
+            pulls, depending on the strategy adopted by the bandit.
+
+    """
     def __init__(self, optimistic=True, **kwargs):
         self.optimistic = optimistic
         super().__init__(**kwargs)
 
     def initQ(self):
+        """Initialize Q-values
+
+        Q-values are initiatized at a high value of 10.0 or
+        the usual value of 0.0.
+
+        """
         initial_value = 10.0 if self.optimistic else 0.0
         self.Q = np.array([initial_value]*self.k)
         self.N = [0]*self.k
 
     def updateQ(self, action):
+        """Update Q-value with the latest reward.
+
+        Increments N by one to record the total number of pulls for the arm
+        corresponding to action.
+        Actual reward is a normally-distributed random variable with standard
+        deviation of 1 and mean set to the true reward value of this arm.
+        Q-values are updated at a constant learning rate of 0.1.
+
+        Parameters:
+        ----------
+            action:
+                the specific arm to be pulled, out of all k arms.
+
+        Returns:
+        -------
+            rewards:
+                the actual reward received from pulling the specific arm.
+        """
         self.N[action] += 1
         reward = np.random.normal(self.reward[action], 1, 1)
         self.Q[action] += (reward - self.Q[action])*0.1
@@ -165,6 +294,7 @@ class OptimisticInitialValueBandit(MultiArmBandit):
 
 
 class UCB_Bandit(MultiArmBandit):
+
     def __init__(self, ucb=True, c=2, **kwargs):
         super().__init__(**kwargs)
         self.total_step = 0
