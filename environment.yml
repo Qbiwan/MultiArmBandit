@@ -1,0 +1,7 @@
+name: bandits
+channels:
+  - defaults
+dependencies:
+  - matplotlib=3.3.2
+  - numpy=1.19
+  - python=3.7.9
