@@ -12,7 +12,7 @@ $ conda activate bandits
 #### General Usage
 
 ```python
-(base) ~/bandit$ python
+(bandits) ~/MultiArmBandit$ python
 >>> from src import *
 >>> plot_epsilon_greedy()
 >>> plot_nonstationary()
