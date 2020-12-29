@@ -1,5 +1,5 @@
 import numpy as np
-from bandits import (MultiArmBandit, NonStationaryBandit,
+from src.bandits import (MultiArmBandit, NonStationaryBandit,
                      OptimisticInitialValueBandit, UCB_Bandit)
 
 

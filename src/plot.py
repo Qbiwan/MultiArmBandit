@@ -1,14 +1,15 @@
 import matplotlib.pyplot as plt
 
-from simulations import (Simulation, NonStationarySimulation,
-                         OptimisticInitialValueSimulation, UCB_Simulation)
+from src.simulations import (Simulation, NonStationarySimulation,
+                             OptimisticInitialValueSimulation,
+                             UCB_Simulation)
 
 
-def plot_epsilon_greedy():
+def plot_epsilon_greedy(num_pull=1000):
     f, ax = plt.subplots()
     epsilons = [0.1, 0.01, 0.0]
     for eps in epsilons:
-        sim = Simulation(epsilon=eps, num_sim=2000)
+        sim = Simulation(epsilon=eps, num_sim=2000,num_pull=num_pull)
         historical_average = sim.run()
         ax.plot(historical_average)
         plt.title("Exploration vs Exploitation")
