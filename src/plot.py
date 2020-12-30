@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 
-from src.simulations import (Simulation, NonStationarySimulation,
-                             OptimisticInitialValueSimulation,
-                             UCB_Simulation)
+from .simulations import (Simulation, NonStationarySimulation,
+                          OptimisticInitialValueSimulation,
+                          UCB_Simulation)
 
 
 def plot_epsilon_greedy(num_pull=1000):

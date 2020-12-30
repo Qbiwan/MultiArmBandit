@@ -47,6 +47,8 @@ class UCB_Simulation(Simulation):
     def run(self):
         historical_average = np.zeros(self.num_pull)
         for sim in range(self.num_sim):
+            if sim % 100 == 0:
+                print(sim)	
             bandit = self.bandit(epsilon=self.epsilon,
                                  ucb=self.ucb)
             for i in range(self.num_pull):

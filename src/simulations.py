@@ -1,6 +1,6 @@
 import numpy as np
-from src.bandits import (MultiArmBandit, NonStationaryBandit,
-                     OptimisticInitialValueBandit, UCB_Bandit)
+from .bandits import (MultiArmBandit, NonStationaryBandit,
+                      OptimisticInitialValueBandit, UCB_Bandit)
 
 
 class Simulation:

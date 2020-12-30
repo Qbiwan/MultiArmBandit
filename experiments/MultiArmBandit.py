@@ -33,10 +33,10 @@ class MultiArmBandit:
     def updateQ(self, action):
         self.N[action] += 1
         reward = np.random.normal(self.reward[action], 1, 1)
-        self.Q[action]+= (reward - self.Q[action])/self.N[action]
+        self.Q[action] += (reward - self.Q[action])/self.N[action]
         return reward
 
-    def pull_lever_once(self):        
+    def pull_lever_once(self):
         action = self.epsilon_greedy()
         return self.updateQ(action)
 
@@ -56,6 +56,8 @@ class Simulation:
     def run(self):
         historical_average = np.zeros(self.num_pull)
         for sim in range(self.num_sim):
+            if sim % 100 == 0:
+                print(sim)
             bandit = self.bandit(epsilon=self.epsilon)
             for i in range(self.num_pull):
                 reward = bandit.pull_lever_once()
